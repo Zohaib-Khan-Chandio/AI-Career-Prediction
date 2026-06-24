@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Career Path Predictor</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#f0f4fa;min-height:100vh;display:flex;flex-direction:column}
+
+/* ── header ── */
+header{background:#1a3c6e;color:#fff;padding:18px 28px;display:flex;align-items:center;gap:14px}
+header .logo{font-size:28px}
+header h1{font-size:20px;font-weight:700;line-height:1.2}
+header p{font-size:12px;opacity:.75;margin-top:2px}
+.badge{margin-left:auto;background:#2e5fa3;font-size:11px;padding:4px 12px;border-radius:20px;white-space:nowrap}
+
+/* ── layout ── */
+.container{max-width:700px;margin:30px auto;padding:0 16px;width:100%}
+
+/* ── card ── */
+.card{background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,.08);overflow:hidden;margin-bottom:24px}
+.card-header{background:#1a3c6e;color:#fff;padding:14px 22px;font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px}
+.card-body{padding:22px}
+
+/* ── steps ── */
+.steps{display:flex;gap:0;margin-bottom:24px;border-radius:10px;overflow:hidden;border:1px solid #dde2ea}
+.step{flex:1;padding:10px 8px;text-align:center;font-size:12px;font-weight:600;color:#888;background:#f8f9fb;border-right:1px solid #dde2ea;cursor:pointer;transition:all .2s}
+.step:last-child{border-right:none}
+.step.active{background:#1a3c6e;color:#fff}
+.step.done{background:#e8f0fb;color:#1a3c6e}
+.step span{display:block;font-size:18px;margin-bottom:2px}
+
+/* ── sections ── */
+.section{display:none}.section.active{display:block}
+
+/* ── form elements ── */
+.field{margin-bottom:18px}
+.field label{display:block;font-size:13px;font-weight:600;color:#333;margin-bottom:6px}
+.field label .q{color:#1a3c6e;font-weight:700;margin-right:4px}
+.field label .hint{font-weight:400;color:#888;font-size:11px;display:block;margin-top:1px}
+
+select{width:100%;padding:10px 12px;border:1.5px solid #dde2ea;border-radius:8px;font-size:13px;color:#333;background:#fff;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;cursor:pointer}
+select:focus{outline:none;border-color:#1a3c6e}
+
+/* ── slider ── */
+.slider-wrap{display:flex;align-items:center;gap:12px}
+.slider-wrap input[type=range]{flex:1;height:6px;accent-color:#1a3c6e}
+.slider-labels{display:flex;justify-content:space-between;font-size:10px;color:#aaa;margin-top:4px}
+.val-badge{min-width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:#1a3c6e;color:#fff;border-radius:8px;font-weight:700;font-size:15px}
+
+/* ── rating pills (for sliders visual) ── */
+.stars{display:flex;gap:5px;margin-top:8px}
+.star{width:28px;height:28px;border-radius:6px;background:#eef2fb;border:1.5px solid #dde2ea;display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;transition:all .15s}
+.star.on{background:#1a3c6e;border-color:#1a3c6e;color:#fff}
+
+/* ── nav buttons ── */
+.nav{display:flex;gap:10px;margin-top:20px}
+.btn{flex:1;padding:12px;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;transition:all .15s}
+.btn-back{background:#eef2fb;color:#1a3c6e}
+.btn-back:hover{background:#dde8f9}
+.btn-next{background:#1a3c6e;color:#fff}
+.btn-next:hover{background:#2e5fa3}
+.btn-predict{background:#0f7c4a;color:#fff;width:100%;margin-top:20px;padding:14px;border-radius:10px;font-size:15px;font-weight:700;border:none;cursor:pointer}
+.btn-predict:hover{background:#0a5c36}
+.btn-reset{background:#eef2fb;color:#1a3c6e;border:none;padding:10px 24px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;margin-top:14px}
+
+/* ── result ── */
+#result{display:none}
+.result-top{text-align:center;padding:28px 20px 20px}
+.result-icon{font-size:64px;margin-bottom:10px}
+.result-label{font-size:13px;color:#888;margin-bottom:6px}
+.result-career{font-size:24px;font-weight:800;color:#1a3c6e;margin-bottom:4px}
+.result-conf{font-size:13px;color:#0f7c4a;font-weight:600}
+.divider{border:none;border-top:1px solid #eee;margin:0}
+.other-title{font-size:12px;font-weight:600;color:#888;padding:14px 22px 8px;text-transform:uppercase;letter-spacing:.05em}
+.other-cards{padding:0 22px 22px;display:flex;flex-direction:column;gap:8px}
+.other-card{display:flex;align-items:center;gap:12px;background:#f8f9fb;border-radius:8px;padding:10px 14px}
+.other-icon{font-size:22px;min-width:30px}
+.other-name{font-size:13px;font-weight:600;color:#333;flex:1}
+.prob-bar-wrap{flex:1}
+.prob-bar{height:8px;background:#dde2ea;border-radius:4px;overflow:hidden}
+.prob-fill{height:100%;background:#1a3c6e;border-radius:4px;transition:width .5s}
+.prob-num{font-size:12px;color:#1a3c6e;font-weight:700;min-width:36px;text-align:right}
+
+/* ── progress dots ── */
+.progress{display:flex;justify-content:center;gap:6px;margin-bottom:20px}
+.dot{width:8px;height:8px;border-radius:50%;background:#dde2ea;transition:.2s}
+.dot.active{background:#1a3c6e;width:20px;border-radius:4px}
+.dot.done{background:#0f7c4a}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">🎓</div>
+  <div>
+    <h1>Career Path Predictor</h1>
+    <p>Answer 9 quick questions · Get your best-fit career</p>
+  </div>
+  <div class="badge">AI · 92% Accuracy</div>
+</header>
+
+<div class="container">
+
+  <!-- step indicators -->
+  <div class="steps" id="stepBar">
+    <div class="step active" id="s0"><span>📚</span>Academic</div>
+    <div class="step" id="s1"><span>🧠</span>Aptitude</div>
+    <div class="step" id="s2"><span>💼</span>Preferences</div>
+    <div class="step" id="s3"><span>🎯</span>Result</div>
+  </div>
+
+  <div class="progress" id="dots">
+    <div class="dot active"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+  </div>
+
+  <!-- ─── SECTION 0: Academic ─────────────────────────── -->
+  <div class="card section active" id="sec0">
+    <div class="card-header">📚 Section 1 — Academic Background</div>
+    <div class="card-body">
+
+      <div class="field">
+        <label><span class="q">Q1</span> What was your main subject group in Matric / O-Levels?</label>
+        <select id="Q1">
+          <option>Arts / Humanities</option>
+          <option>Science with Biology</option>
+          <option>Science with Computer Science</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label><span class="q">Q2</span> What was your Intermediate / A-Levels program?</label>
+        <select id="Q2">
+          <option>FA / Humanities</option>
+          <option>FSc Pre-Engineering</option>
+          <option>FSc Pre-Medical</option>
+          <option>I.Com (Commerce)</option>
+          <option>ICS (Intermediate in Computer Science)</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label><span class="q">Q3</span> What was your approximate grade in your last major exams?</label>
+        <select id="Q3">
+          <option>Above 80% (A-1 Grade)</option>
+          <option>70-80% (A Grade)</option>
+          <option>60-70% (B Grade)</option>
+          <option>Below 60% (C Grade or lower)</option>
+        </select>
+      </div>
+
+      <div class="nav"><button class="btn btn-next" onclick="goTo(1)">Next →</button></div>
+    </div>
+  </div>
+
+  <!-- ─── SECTION 1: Aptitude ──────────────────────────── -->
+  <div class="card section" id="sec1">
+    <div class="card-header">🧠 Section 2 — Aptitude & Self-Assessment</div>
+    <div class="card-body">
+
+      <div class="field">
+        <label><span class="q">Q4</span> Analytical & Math Aptitude
+          <span class="hint">How comfortable are you solving math puzzles, logical riddles, or analyzing data?</span>
+        </label>
+        <div class="stars" id="stars4"></div>
+        <input type="hidden" id="Q4" value="3">
+      </div>
+
+      <div class="field">
+        <label><span class="q">Q5</span> Verbal & Communication Skills
+          <span class="hint">How confident are you with public speaking, writing, or debating?</span>
+        </label>
+        <div class="stars" id="stars5"></div>
+        <input type="hidden" id="Q5" value="3">
+      </div>
+
+      <div class="field">
+        <label><span class="q">Q6</span> Creative & Design Interest
+          <span class="hint">How much do you enjoy sketching, digital design, photography, or writing?</span>
+        </label>
+        <div class="stars" id="stars6"></div>
+        <input type="hidden" id="Q6" value="3">
+      </div>
+
+      <div class="field">
+        <label><span class="q">Q7</span> Technical & Programming Orientation
+          <span class="hint">How fascinated are you by computers, software, or fixing gadgets?</span>
+        </label>
+        <div class="stars" id="stars7"></div>
+        <input type="hidden" id="Q7" value="3">
+      </div>
+
+      <div class="nav">
+        <button class="btn btn-back" onclick="goTo(0)">← Back</button>
+        <button class="btn btn-next" onclick="goTo(2)">Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── SECTION 2: Preferences ───────────────────────── -->
+  <div class="card section" id="sec2">
+    <div class="card-header">💼 Section 3 — Professional Preferences</div>
+    <div class="card-body">
+
+      <div class="field">
+        <label><span class="q">Q8</span> Preferred study duration before entering the job market?</label>
+        <select id="Q8">
+          <option>Short term (1-2 years / diploma / freelance)</option>
+          <option>Medium term (4-year Bachelor's degree)</option>
+          <option>Long term (5+ years: MBBS, CA, PhD)</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label><span class="q">Q9</span> Which work environment sounds most appealing to you?</label>
+        <select id="Q9">
+          <option>Corporate / Desk Job</option>
+          <option>Clinical / Hospital</option>
+          <option>Fieldwork / Outdoor</option>
+        </select>
+      </div>
+
+      <div class="nav">
+        <button class="btn btn-back" onclick="goTo(1)">← Back</button>
+      </div>
+      <button class="btn-predict" onclick="predict()">🔮 Find My Career Path</button>
+    </div>
+  </div>
+
+  <!-- ─── SECTION 3: Result ────────────────────────────── -->
+  <div class="card section" id="sec3" style="display:none">
+    <div class="result-top">
+      <div class="result-icon" id="resIcon">🎓</div>
+      <div class="result-label">Best Career Match</div>
+      <div class="result-career" id="resCareer">—</div>
+      <div class="result-conf" id="resConf"></div>
+    </div>
+    <hr class="divider">
+    <div class="other-title">Other strong matches</div>
+    <div class="other-cards" id="otherCards"></div>
+    <div style="text-align:center;padding-bottom:18px">
+      <button class="btn-reset" onclick="reset()">↩ Start Over</button>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<script>
+// ── star rating init ──────────────────────────────────────────
+['4','5','6','7'].forEach(q => {
+  const wrap = document.getElementById('stars'+q);
+  const inp  = document.getElementById('Q'+q);
+  const labels = ['Very Weak','Weak','Average','Strong','Very Strong'];
+  for(let i=1;i<=5;i++){
+    const s = document.createElement('div');
+    s.className='star'+(inp.value>=i?' on':'');
+    s.title = labels[i-1];
+    s.textContent = i;
+    s.onclick = () => {
+      inp.value = i;
+      wrap.querySelectorAll('.star').forEach((el,idx)=>el.classList.toggle('on',idx<i));
+    };
+    wrap.appendChild(s);
+  }
+  // default 3 on
+  wrap.querySelectorAll('.star').forEach((el,idx)=>el.classList.toggle('on',idx<3));
+});
+
+// ── navigation ────────────────────────────────────────────────
+let current = 0;
+function goTo(n){
+  document.getElementById('sec'+current).classList.remove('active');
+  document.getElementById('sec'+n).classList.add('active');
+  current = n;
+  // step bar
+  ['s0','s1','s2','s3'].forEach((id,i)=>{
+    const el=document.getElementById(id);
+    el.className='step'+(i===n?' active':i<n?' done':'');
+  });
+  // dots
+  document.querySelectorAll('#dots .dot').forEach((d,i)=>{
+    d.className='dot'+(i===n?' active':i<n?' done':'');
+  });
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ── predict ───────────────────────────────────────────────────
+function predict(){
+  const body = {
+    Q1: document.getElementById('Q1').value,
+    Q2: document.getElementById('Q2').value,
+    Q3: document.getElementById('Q3').value,
+    Q4: document.getElementById('Q4').value,
+    Q5: document.getElementById('Q5').value,
+    Q6: document.getElementById('Q6').value,
+    Q7: document.getElementById('Q7').value,
+    Q8: document.getElementById('Q8').value,
+    Q9: document.getElementById('Q9').value,
+  };
+
+  fetch('/predict',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+    .then(r=>r.json())
+    .then(res=>{
+      if(res.error){ alert('Error: '+res.error); return; }
+
+      document.getElementById('resIcon').textContent   = res.icon;
+      document.getElementById('resCareer').textContent = res.prediction;
+      document.getElementById('resConf').textContent   = res.top3[0].prob + '% confidence';
+
+      const others = document.getElementById('otherCards');
+      others.innerHTML = res.top3.slice(1).map(t=>`
+        <div class="other-card">
+          <div class="other-icon">${t.icon}</div>
+          <div class="other-name">${t.career}</div>
+          <div class="prob-bar-wrap">
+            <div class="prob-bar"><div class="prob-fill" style="width:${t.prob}%"></div></div>
+          </div>
+          <div class="prob-num">${t.prob}%</div>
+        </div>`).join('');
+
+      // show result section
+      ['sec0','sec1','sec2'].forEach(id=>{
+        document.getElementById(id).classList.remove('active');
+        document.getElementById(id).style.display='none';
+      });
+      document.getElementById('sec3').style.display='block';
+      goTo(3);
+    });
+}
+
+// ── reset ─────────────────────────────────────────────────────
+function reset(){
+  ['sec0','sec1','sec2'].forEach(id=>{
+    document.getElementById(id).style.display='';
+  });
+  document.getElementById('sec3').style.display='none';
+  goTo(0);
+  // reset stars
+  ['4','5','6','7'].forEach(q=>{
+    document.getElementById('Q'+q).value=3;
+    document.getElementById('stars'+q).querySelectorAll('.star').forEach((el,i)=>el.classList.toggle('on',i<3));
+  });
+}
+</script>
+</body>
+</html>
