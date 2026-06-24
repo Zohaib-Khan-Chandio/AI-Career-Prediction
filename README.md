@@ -240,7 +240,7 @@ http://localhost:5000
 
 **Zohaib Khan Chandio**
 
-BBA Student | Machine Learning Enthusiast
+CS Student | Machine Learning Enthusiast
 
 GitHub: https://github.com/Zohaib-Khan-Chandio
 
